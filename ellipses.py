@@ -1,10 +1,7 @@
-"""
-
-"""
 import numpy as np
 
 
-def getEllipse(e, theta, size: int = 200, fill_value: int = 1):
+def getEllipse(e, theta, size: int = 200, fill_value: int = 1) -> np.ndarray:
     r"""
     Example
     --------
@@ -22,7 +19,7 @@ def getEllipse(e, theta, size: int = 200, fill_value: int = 1):
 
     # Create ellipse
     s, c = np.sin(theta), np.cos(theta)
-    ellipse = ((x * c - y * s) / a)**2 + ((x * s + y * c) / b)**2
+    ellipse = ((x * c - y * s) / a) ** 2 + ((x * s + y * c) / b) ** 2
 
     # Fill ellipse
     mask = np.zeros_like(ellipse)
@@ -54,13 +51,18 @@ def normaliseEllipse(ellipse: np.ndarray) -> np.ndarray:
     positive_indices = ellipse > 0
     negative_indices = ellipse < 0
 
-    ellipse[positive_indices] /= np.count_nonzero(positive_indices)
-    ellipse[negative_indices] /= np.count_nonzero(negative_indices)
+    pos_count = np.count_nonzero(positive_indices)
+    neg_count = np.count_nonzero(negative_indices)
+
+    if pos_count > 0:
+        ellipse[positive_indices] /= pos_count
+    if neg_count > 0:
+        ellipse[negative_indices] /= neg_count
 
     return ellipse
 
 
-def generateEllipse(params):
+def generateEllipse(params) -> np.ndarray:
     ellipse = getEllipse(*params)
     ellipse = normaliseEllipse(ellipse)
     ellipse = np.flipud(np.fliplr(ellipse))

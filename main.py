@@ -17,7 +17,7 @@ class ShapeGenerator:
 
 class ShapeDetector:
     def __init__(self, image: np.ndarray, shapes: ShapeGenerator):
-        self.image = image / image.max()  # [0, 1]
+        self.image = image / image.max()
         self.shapes = shapes
 
         self.max_response = None
@@ -25,16 +25,19 @@ class ShapeDetector:
 
     def match(self):
         param, shape = next(self.shapes.makeShapes())
-        self.max_response = cv2.filter2D(
-            self.image, -1, shape)
+        self.max_response = cv2.filter2D(self.image, -1, shape)
         self.max_idx = np.zeros((*self.image.shape, len(self.shapes.args[0])))
-        for param, shape in tqdm(self.shapes.makeShapes(), desc="Matching shapes", total=len(self.shapes.args)):
+        for param, shape in tqdm(
+            self.shapes.makeShapes(),
+            desc="Matching shapes",
+            total=len(self.shapes.args),
+        ):
             filtered_image = cv2.filter2D(self.image, -1, shape)
             mask = filtered_image > self.max_response
             self.max_response[mask] = filtered_image[mask]
             self.max_idx[mask] = np.array(param)
 
-    def __call__(self, threshold: float):
+    def __call__(self, threshold: float) -> np.ndarray:
         """
         threshold: float in [-1, 1]
         """
@@ -45,7 +48,9 @@ class ShapeDetector:
         sorted_intensities = np.sort(self.max_response, axis=None)[::-1]
 
         num_iterations = sum(corr >= threshold for corr in sorted_intensities)
-        for corr in tqdm(sorted_intensities, desc="Creating mask", total=num_iterations):
+        for corr in tqdm(
+            sorted_intensities, desc="Creating mask", total=num_iterations
+        ):
 
             if corr <= threshold:
                 break
@@ -60,8 +65,12 @@ class ShapeDetector:
             cr, cc = tmp[0, 0], tmp[0, 1]
 
             half_size = np.array(curr_shape).shape[0] // 2
+
+            if half_size == 0:
+                continue
+
             shape = np.pad(np.zeros_like(self.image), (half_size, half_size))
-            shape[cr:cr+2*half_size, cc:cc+2*half_size] = curr_shape
+            shape[cr: cr + 2 * half_size, cc: cc + 2 * half_size] = curr_shape
             shape = shape[half_size:-half_size, half_size:-half_size]
 
             if ((self.mask > 0) & (shape > 0)).any():
