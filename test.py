@@ -5,7 +5,7 @@ import numpy as np
 from scipy.ndimage import median_filter
 
 from ellipses import generateEllipse
-from main import ShapeDetector, ShapeGenerator
+from psdetector import ShapeDetector, ShapeGenerator
 
 if __name__ == '__main__':
     images_path = Path("images")
